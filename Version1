@@ -1,0 +1,771 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog, simpledialog
+
+import os
+import datetime
+import pickle
+import subprocess
+#selbstgeschrieben
+def loesche_aktuelles_frame():
+    for widget in root.winfo_children():
+        widget.destroy()
+
+
+def überprüfen():
+    if eingabefeld.get() == "1234":
+        
+        messagebox.showinfo("Info", "Deine Eingabe war erfolgreich")
+        loesche_aktuelles_frame()
+        Hauptprogramm()
+        
+        
+    else:
+        messagebox.showerror("Fehler", "Falsches Passwort")
+DOCUMENTS_DIR = "dokumente"
+# Datei zum Speichern der Dokumentenliste
+DOCUMENT_LIST_FILE = "dokumentenliste.pkl"
+
+# Überprüfen und Erstellen des Verzeichnisses für Dokumente
+if not os.path.exists(DOCUMENTS_DIR):
+    os.makedirs(DOCUMENTS_DIR)
+
+# Laden der Dokumentenliste
+if os.path.exists(DOCUMENT_LIST_FILE):
+    with open(DOCUMENT_LIST_FILE, "rb") as f:
+        dokumentenliste = pickle.load(f)
+else:
+    dokumentenliste = []
+def Stratseite():
+    loesche_aktuelles_frame()
+
+    Label_Überschrift_startseite = tk.Label(root, text="Gebe die Zugangsdaten ein")
+    Label_Überschrift_startseite.grid(row=0, column=0, columnspan=3, pady=10)
+
+    global eingabefeld  # Global, damit es in der überprüfen-Funktion zugänglich ist
+    eingabefeld = tk.Entry(root)
+    eingabefeld.grid(row=1, column=0, columnspan=3, padx=5, pady=5)
+
+    Button_weitergeben = tk.Button(root, text="Überprüfen", command=überprüfen, width=13)
+    Button_weitergeben.grid(row=2, column=0, columnspan=3, pady=10)
+
+
+
+def update_program():
+    loesche_aktuelles_frame()
+    progress_label = tk.Label(root, text="Updating...")
+    progress_label.grid(row=0, column=0, pady=10)
+
+    progress_bar = ttk.Progressbar(root, orient="horizontal", mode="determinate", length=300)
+    progress_bar.grid(row=1, column=0, padx=20, pady=20)
+
+    def update():
+        progress_bar['value'] += 20
+        if progress_bar['value'] < 100:
+            root.after(500, update)  # Simuliere Update
+        else:
+            messagebox.showinfo("Info", "Update abgeschlossen!")
+            Hauptprogramm()
+
+    update()
+
+def Hauptprogramm():
+
+    loesche_aktuelles_frame()
+
+
+
+    # Menüleiste erstellen
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+
+    aufgaben_menu = tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Menü", menu=aufgaben_menu)
+    aufgaben_menu.add_command(label="Startseite", command=Stratseite)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Hilfe", command=hilfe)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Verwaltung", command=Verwaltung)
+
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Gespeicherte texte", command=lade_texte)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Update",command=update_program)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Einstellungen",command=Einstellungen)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Beenden", command=root.quit)
+
+
+    Willkommenstext = tk.Label(root, text="VerwaltungsProgramm", font=("Arial", 12, "bold"))
+    Willkommenstext.grid(row=0, column=0, columnspan=1, pady=10)
+
+    # Block 1: Blau
+    Label_daten_verwalten = tk.Label(root, text="Daten verwalten", font=("Arial", 22), bg="black", fg="white")
+    Label_daten_verwalten.grid(row=2, column=0, pady=10, padx=20, sticky="ew")
+
+    Button_programme_verwalten = tk.Button(root, text="Verwaltung", fg="red", bg="black", font=("Arial", 13, "bold"), command=Verwaltung, width=20)
+    Button_programme_verwalten.grid(row=3, column=0, padx=20, pady=10, sticky="")
+
+    Button_aufgabenverwaltung = tk.Button(root, text="Aufgabenverwaltung", fg="red", bg="black", font=("Arial", 13, "bold"), command=neuer_text, width=20)
+    Button_aufgabenverwaltung.grid(row=4, column=0, padx=20, pady=10, sticky="")
+
+    # Block 2: Schwarz
+    Label_errinerungen = tk.Label(root, text="Errinerungen", font=("Arial", 22), bg="blue", fg="white")
+    Label_errinerungen.grid(row=2, column=1, pady=10, padx=20, sticky="ew")
+
+    Button_termine = tk.Button(root, text="Termine", bg="blue", font=("Arial", 13, "bold"), command=main, width=20)
+    Button_termine.grid(row=3, column=1, padx=20, pady=10, sticky="")
+
+    Button_passwörter_benutzername = tk.Button(root, text="Passwörter/Benutzername", bg="blue", font=("Arial", 13, "bold"), command=Passwörter_benutzername, width=20)
+    Button_passwörter_benutzername.grid(row=4, column=1, padx=20, pady=10, sticky="")
+
+    # Block 3: Rot 
+    Label_sonstiges = tk.Label(root, text="Sonstiges", font=("Arial", 22), bg="red", fg="white")
+    Label_sonstiges.grid(row=2, column=2, pady=10, padx=20, sticky="ew")
+
+    Button_einkauf = tk.Button(root, text="Einkauf", bg="red", font=("Arial", 13, "bold"), command=einkauf_verteiler, width=20) 
+    Button_einkauf.grid(row=3, column=2, padx=20, pady=10, sticky="")
+
+    Button_telefonnummern = tk.Button(root, text="Telefonnummern", bg="red", font=("Arial", 13, "bold"), command=telefonnumern, width=20)
+    Button_telefonnummern.grid(row=4, column=2, padx=20, pady=10, sticky="")
+
+
+
+    # Block 4: Orange
+    Label_Ärzte = tk.Label(root, text="Ärztiches Verwalten", font=("Arial", 20), bg="orange", fg="white")
+    Label_Ärzte.grid(row=2, column=3, pady=10, padx=20, sticky="ew")
+    
+    Button_Ärzte = tk.Button(root, text="Ärzte auf Sylt", bg="orange", font=("Arial", 13, "bold"), command=Ärzte_sylt, width=20)
+    Button_Ärzte.grid(row=3, column=3, padx=10, pady=10, sticky="ew")
+
+    Button_Medikamente = tk.Button(root, text="Medikamente", bg="orange", font=("Arial", 13, "bold"), command=Mediplan, width=20)
+    Button_Medikamente.grid(row=4, column=3, padx=10, pady=10, sticky="ew")
+
+    # Block 5: Türkis
+    Label_Dokumente = tk.Label(root, text="Dokumente", font=("Arial", 22), bg="Turquoise", fg="white")
+    Label_Dokumente.grid(row=2, column=4, padx=20, pady=10, sticky="ew")
+
+    Button_Dokumente_scannen = tk.Button(root, text="Dokumente einscannen", bg="Turquoise", fg="black", font=("Arial", 13, "bold"), command=Dokumente_scannen, width=20)
+    Button_Dokumente_scannen.grid(row=3, column=4, padx=20, pady=10, sticky="")
+
+    Button_Dokumente = tk.Button(root, text="Dokumente", bg="Turquoise", font=("Arial", 13, "bold"), command=Dokumente, width=20)
+    Button_Dokumente.grid(row=4, column=4, padx=20, pady=10, sticky="")
+
+#   Block 6 Grün
+    Label_infos_sonstiges=tk.Label(root,text="Wichtige infos",bg="green",font=("Arial",20,"bold"))
+    Label_infos_sonstiges.grid(row=2,column=5,padx=20,pady=10,sticky="")
+
+    Button_hilfe = tk.Button(root, text="Hilfe", bg="green", fg="black", font=("Arial", 13, "bold"), command=hilfe, width=20)
+    Button_hilfe.grid(row=3, column=5, padx=20, pady=10, sticky="")
+
+ 
+
+def Dokumente():
+    loesche_aktuelles_frame()
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+
+    aufgaben_menu = tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Menü", menu=aufgaben_menu)
+    aufgaben_menu.add_command(label="Startseite", command=Stratseite)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Hilfe", command=hilfe)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Verwaltung", command=Verwaltung)
+
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Gespeicherte texte", command=lade_texte)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Update",command=update_program)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Einstellungen",command=Einstellungen)
+
+    aufgaben_menu.add_separator()
+    aufgaben_menu.add_command(label="Beenden", command=root.quit)
+    Label_Dokumentenverwaltung = tk.Label(root, text="Dokumentenverwaltung", font=("Arial", 22), bg="black", fg="white")
+    Label_Dokumentenverwaltung.grid(row=0, column=0, columnspan=3, pady=10)
+
+    global listbox
+    listbox = tk.Listbox(root, width=50)
+    listbox.grid(row=1, column=0, columnspan=3, padx=20, pady=10)
+
+    btn_scannen = tk.Button(root, text="Dokumente scannen", command=Dokumente_scannen)
+    btn_scannen.grid(row=2, column=0, padx=10, pady=10)
+
+    btn_drucken = tk.Button(root, text="Dokumente drucken", command=Dokumente_drucken)
+    btn_drucken.grid(row=2, column=1, padx=10, pady=10)
+
+    btn_löschen = tk.Button(root, text="Dokumente löschen", command=Dokumente_löschen)
+    btn_löschen.grid(row=2, column=2, padx=10, pady=10)
+
+    btn_öffnen = tk.Button(root, text="Dokumente öffnen", command=Dokumente_öffnen)
+    btn_öffnen.grid(row=3, column=1, padx=10, pady=10)
+
+    update_document_listbox()
+
+def Dokumente_scannen():
+    filepath = filedialog.askopenfilename()
+    if filepath:
+        filename = os.path.basename(filepath)
+        new_filepath = os.path.join(DOCUMENTS_DIR, filename)
+        if not os.path.exists(new_filepath):
+            with open(filepath, 'rb') as fsrc, open(new_filepath, 'wb') as fdst:
+                fdst.write(fsrc.read())
+            dokumentenliste.append(filename)
+            save_document_list()
+            update_document_listbox()
+            messagebox.showinfo("Erfolg", "Dokument erfolgreich hochgeladen.")
+        else:
+            messagebox.showerror("Fehler", "Dokument mit gleichem Namen existiert bereits.")
+
+def Dokumente_drucken():
+    selected_document = listbox.get(tk.ACTIVE)
+    if selected_document:
+        filepath = os.path.join(DOCUMENTS_DIR, selected_document)
+        messagebox.showinfo("Drucken", f"Dokument {filepath} wird gedruckt (Simuliert).")
+        # Hier könnte man den Druckbefehl einfügen
+
+def Dokumente_löschen():
+    selected_document = listbox.get(tk.ACTIVE)
+    if selected_document:
+        filepath = os.path.join(DOCUMENTS_DIR, selected_document)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            dokumentenliste.remove(selected_document)
+            save_document_list()
+            update_document_listbox()
+            messagebox.showinfo("Erfolg", "Dokument erfolgreich gelöscht.")
+        else:
+            messagebox.showerror("Fehler", "Dokument konnte nicht gefunden werden.")
+
+def Dokumente_öffnen():
+    selected_document = listbox.get(tk.ACTIVE)
+    if selected_document:
+        filepath = os.path.join(DOCUMENTS_DIR, selected_document)
+        if os.path.exists(filepath):
+            subprocess.Popen(filepath, shell=True)
+        else:
+            messagebox.showerror("Fehler", "Dokument konnte nicht gefunden werden.")
+
+def save_document_list():
+    with open(DOCUMENT_LIST_FILE, "wb") as f:
+        pickle.dump(dokumentenliste, f)
+
+def update_document_listbox():
+    listbox.delete(0, tk.END)
+    for doc in dokumentenliste:
+        listbox.insert(tk.END, doc)
+def Mediplan():
+    pass
+
+def Ärzte_sylt():
+    loesche_aktuelles_frame()
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+    
+    # Menü erstellen
+    aufgaben_menu = tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Menü", menu=aufgaben_menu)
+    aufgaben_menu.add_command(label="Startseite", command=Hauptprogramm)
+
+    Hörnum_ärzte=tk.Label(text="Hörnum Ärzte",font=("Arial",15,"bold"))
+    Hörnum_ärzte.grid()
+
+
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    Hörnum_Bäderarzt=tk.Label(text="Frau Dr. med. Antje Röhrs",font=("Arial",13,"bold"))
+    Hörnum_Bäderarzt.grid()
+    Hörnum_Bäderarzt=tk.Label(text="04651 881016",fg="red",font=("Arial",12))
+    Hörnum_Bäderarzt.grid()
+    
+
+    
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    Trennline=tk.Label(text="____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________")
+    Trennline.grid()
+
+    Rantum_Ärzte=tk.Label(text="Rantum Ärzte",font=("Arial",15,"bold"))
+    Rantum_Ärzte.grid()
+
+    
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    
+    Trennline=tk.Label(text="____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________")
+    Trennline.grid()
+
+    Westerland_ärzte=tk.Label(text="Westerland Ärzte",font=("arial",15,"bold"))
+    Westerland_ärzte.grid()
+
+
+
+def sonstiges():
+    loesche_aktuelles_frame()
+    überschrifft_sonstiges = tk.Label(root, text="Sonstiges", font=("Arial", 15, "bold"))
+    überschrifft_sonstiges.pack(anchor="center")
+
+def Nicht_so_wichtige_infos_abspeichern():
+    pass
+
+def hilfe():
+    loesche_aktuelles_frame()
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+
+    
+    aufgaben_menu = tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Menü", menu=aufgaben_menu)
+    aufgaben_menu.add_command(label="Startseite", command=Hauptprogramm)
+    
+    Anleitung_Überschrifft=tk.Label(text="Hilfe/Anleitung",font=("Arial",14,"bold"))
+    Anleitung_Überschrifft.grid()
+
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    Anleitung=tk.Label(text="Termine",font=("Arial",13,"bold"))
+    Anleitung.grid()
+
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    Anleitung=tk.Label(text="Um Termine zuspeichern Termine -> Tag auswählen -> Termin eintragen -> Speichern",font=("Arial",13,"bold"))
+    Anleitung.grid()
+
+    
+    abstand = tk.Label(root, text="")
+    abstand.grid()
+
+    Anleitung=tk.Label(text="Um termine zulöschen/Bearbeiten -> Tag auswählen -> bei uhrzeit 0000 eingeben -> speichern -> erneut tag auswählen",font=("Arial",13,"bold"))
+    Anleitung.grid()
+
+def telefonnumern():
+    pass
+
+def einkauf_verteiler():
+    pass
+
+def Abos_und_verträge():
+    pass
+
+def aufgabenverwaltung():
+    loesche_aktuelles_frame()
+#Selbstgeschrieben bis hier
+
+# Datei, in der die Texte gespeichert werden
+DATEINAME = "texte.txt"
+
+# Funktion zum Laden der gespeicherten Texte
+def lade_texte():
+    if os.path.exists(DATEINAME):
+        with open(DATEINAME, 'r') as file:
+            texte = file.readlines()
+        return [text.strip() for text in texte]
+    return []
+
+# Funktion zum Speichern der Texte
+def speichere_texte(texte):
+    with open(DATEINAME, 'w') as file:
+        for text in texte:
+            file.write(text + '\n')
+
+# Funktion zum Aktualisieren der Anzeige
+def aktualisiere_anzeige():
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    for text in texte:
+        frame = tk.Frame(root)
+        label = tk.Label(frame, text=text)
+        label.pack(side=tk.LEFT)
+        loeschen_button = tk.Button(frame, text="🗑️", command=lambda t=text: loesche_text(t))
+        loeschen_button.pack(side=tk.RIGHT)
+        frame.pack()
+
+# Funktion zum Löschen eines Textes
+def loesche_text(text):
+    texte.remove(text)
+    speichere_texte(texte)
+    aktualisiere_anzeige()
+
+# Funktion zum Hinzufügen eines neuen Textes
+def neuer_text():
+    user_input = simpledialog.askstring("Eingabe", "Bitte geben Sie etwas ein:")
+    if user_input:
+        texte.append(user_input)
+        speichere_texte(texte)
+        aktualisiere_anzeige()
+        
+       #selbstgeschriben
+def Passwörter_benutzername():
+    loesche_aktuelles_frame()
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Label_Überschrift = tk.Label(root, text="Passwörter und Benutzername", font=("Arial", 22))
+    Label_Überschrift.pack(anchor="center")
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Button_startseite = tk.Button(text="Zurück", font=("Arial", 13), command=Hauptprogramm, width=20)
+    Button_startseite.pack(anchor="center")
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Button_Benutzername = tk.Button(root, text="Benutzer", font=("Arial", 13), command=Benutzername_verwalten, width=20)
+    Button_Benutzername.pack(anchor="center")
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Button_Passwörter = tk.Button(root, text="Passwörter", font=("Arial", 13), command=Passwörter_speichern, width=20)
+    Button_Passwörter.pack(anchor="center")
+
+def Benutzername_verwalten():
+    loesche_aktuelles_frame()
+
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+    
+    # Menü erstellen
+    aufgaben_menu = tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Menü", menu=aufgaben_menu)
+    aufgaben_menu.add_command(label="Startseite", command=Stratseite)
+
+   
+    Label_Überschrift = tk.Label(root, text="Benutzernamen verwalten", font=("Arial", 22))
+    Label_Überschrift.pack(anchor="center")
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    eingabefeld_Benutzername = tk.Entry(root)
+    eingabefeld_Benutzername.pack()
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Button_Speichern_benutzername = tk.Button(
+        root, text="Speichern", font=("Arial", 13), command=lambda: Speichern_benutzername(eingabefeld_Benutzername), width=20
+    )
+    Button_Speichern_benutzername.pack(anchor="nw")
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Button_Daten_wiederholen = tk.Button(
+        root, text="Einsehen", font=("Arial", 13), command=Daten_wiederholen_Benutzername, width=20
+    )
+    Button_Daten_wiederholen.pack(anchor="nw")
+
+    abstand = tk.Label(root, text="")
+    abstand.pack()
+
+    Button_Benutzername_loeschen = tk.Button(
+        root, text="Löschen", font=("Arial", 13), command=Benutzername_loeschen, width=20
+    )
+    Button_Benutzername_loeschen.pack(anchor="nw")
+
+    global label_ergebnis
+    label_ergebnis = tk.Label(root, text="", font=("Arial", 13))
+    label_ergebnis.pack()
+#ende
+def Speichern_benutzername(eingabefeld_Benutzername):
+    benutzername = eingabefeld_Benutzername.get()
+    if benutzername:
+        try:
+            with open("benutzernamen.txt", "a") as datei:
+                datei.write(benutzername + "\n")
+            label_ergebnis.config(text=f"Benutzername gespeichert: {benutzername}")
+            eingabefeld_Benutzername.delete(0, tk.END)
+        except Exception as e:
+            label_ergebnis.config(text=f"Fehler beim Speichern: {e}")
+
+def Daten_wiederholen_Benutzername():
+    try:
+        with open("benutzernamen.txt", "r") as datei:
+            gespeicherte_benutzernamen = datei.read()
+        label_ergebnis.config(text=f"Gespeicherte Benutzernamen:\n{gespeicherte_benutzernamen}")
+    except FileNotFoundError:
+        label_ergebnis.config(text="Keine gespeicherten Benutzerdaten gefunden.")
+
+def Benutzername_loeschen():
+    try:
+        open("benutzernamen.txt", "w").close()
+        label_ergebnis.config(text="Alle Benutzernamen gelöscht.")
+    except FileNotFoundError:
+        label_ergebnis.config(text="Keine gespeicherten Benutzerdaten gefunden.")
+
+def Passwörter_speichern():
+    pass
+
+def aufgaben_einsehen():
+    pass
+
+def save_appointment(date, appointment):
+    with open("appointments.txt", "a") as file:
+        file.write(f"{date}:{appointment}\n")
+
+# Lädt die Termine aus der Textdatei
+def load_appointments():
+    if not os.path.exists("appointments.txt"):
+        return {}
+    with open("appointments.txt", "r") as file:
+        appointments = {}
+        for line in file:
+            date, appointment = line.strip().split(":", 1)
+            appointments[date] = appointment
+        return appointments
+
+# Löscht einen Termin aus der Textdatei und dem appointments-Dictionary
+def delete_appointment(date, appointments):
+    if date in appointments:
+        del appointments[date]
+    with open("appointments.txt", "r") as file:
+        lines = file.readlines()
+    with open("appointments.txt", "w") as file:
+        for line in lines:
+            if not line.startswith(date):
+                file.write(line)
+
+# Markiert die Tage mit Terminen blau
+def mark_appointments(calendar_frame, appointments):
+    for widget in calendar_frame.winfo_children():
+        if isinstance(widget, tk.Button) and widget.cget("text"):
+            date = widget.cget("text")
+            if date in appointments:
+                widget.config(bg="lightblue")
+            else:
+                widget.config(bg="SystemButtonFace")
+
+# Öffnet ein Popup-Fenster zur Eingabe eines Termins oder Anzeige mehrerer Termine
+def open_appointment_popup(date, appointments, calendar_frame):
+    if appointments.get(date):
+        if "00:00" in appointments[date]:
+            top = tk.Toplevel()
+            top.title(f"Termine für {date}")
+
+            tk.Label(top, text=f"Termine für {date}", font=('Arial', 12)).pack(pady=10)
+
+            appointments_list = tk.Listbox(top, selectmode=tk.MULTIPLE, font=('Arial', 12), height=5)
+            appointments_list.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+            for app in appointments[date].split(";"):
+                appointments_list.insert(tk.END, app)
+
+            def delete_selected():
+                selected_indices = appointments_list.curselection()
+                if selected_indices:
+                    selected_indices = sorted(selected_indices, reverse=True)
+                    for idx in selected_indices:
+                        appointments_list.delete(idx)
+                    remaining_apps = [appointments_list.get(idx) for idx in range(appointments_list.size())]
+                    appointments[date] = ";".join(remaining_apps)
+                    if not appointments[date]:
+                        delete_appointment(date, appointments)
+                        mark_appointments(calendar_frame, appointments)
+                    save_to_file(appointments)
+
+            delete_button = tk.Button(top, text="Ausgewählte löschen", command=delete_selected, font=('Arial', 12), bg="#FF6347", fg="white")
+            delete_button.pack(pady=10)
+        else:
+            top = tk.Toplevel()
+            top.title(f"Termin für {date}")
+
+            tk.Label(top, text=f"Datum: {date}", font=('Arial', 12)).pack(pady=10)
+
+            time_label = tk.Label(top, text="Uhrzeit (HH:MM):", font=('Arial', 12))
+            time_label.pack(pady=5)
+            time_entry = tk.Entry(top, font=('Arial', 12))
+            time_entry.pack(pady=5)
+
+            appointment_label = tk.Label(top, text="Terminbeschreibung:", font=('Arial', 12))
+            appointment_label.pack(pady=5)
+            appointment_entry = tk.Entry(top, font=('Arial', 12))
+            appointment_entry.pack(pady=5)
+
+            def save():
+                time = time_entry.get()
+                appointment = appointment_entry.get()
+                if time or appointment:
+                    full_appointment = f"{time} {appointment}"
+                    save_appointment(date, full_appointment)
+                    if date in appointments:
+                        appointments[date] += f";{full_appointment}"
+                    else:
+                        appointments[date] = full_appointment
+                    mark_appointments(calendar_frame, appointments)
+                    top.destroy()
+                    messagebox.showinfo("Erfolg", "Termin gespeichert!")
+                else:
+                    messagebox.showwarning("Fehler", "Bitte Uhrzeit und Terminbeschreibung eingeben.")
+
+            save_button = tk.Button(top, text="Speichern", command=save, font=('Arial', 12), bg="#4CAF50", fg="white")
+            save_button.pack(pady=10)
+
+    else:
+        top = tk.Toplevel()
+        top.title(f"Termin für {date}")
+
+        tk.Label(top, text=f"Datum: {date}", font=('Arial', 12)).pack(pady=10)
+
+        time_label = tk.Label(top, text="Uhrzeit (HH:MM):", font=('Arial', 12))
+        time_label.pack(pady=5)
+        time_entry = tk.Entry(top, font=('Arial', 12))
+        time_entry.pack(pady=5)
+
+        appointment_label = tk.Label(top, text="Terminbeschreibung:", font=('Arial', 12))
+        appointment_label.pack(pady=5)
+        appointment_entry = tk.Entry(top, font=('Arial', 12))
+        appointment_entry.pack(pady=5)
+
+        def save():
+            time = time_entry.get()
+            appointment = appointment_entry.get()
+            if time or appointment:
+                full_appointment = f"{time} {appointment}"
+                save_appointment(date, full_appointment)
+                appointments[date] = full_appointment
+                mark_appointments(calendar_frame, appointments)
+                top.destroy()
+                messagebox.showinfo("Erfolg", "Termin gespeichert!")
+            else:
+                delete_appointment(date, appointments)
+                mark_appointments(calendar_frame, appointments)
+                top.destroy()
+                messagebox.showinfo("Erfolg", "Termin gelöscht!")
+
+        save_button = tk.Button(top, text="Speichern", command=save, font=('Arial', 12), bg="#4CAF50", fg="white")
+        save_button.pack(pady=10)
+
+# Speichert die Termine in die Textdatei
+def save_to_file(appointments):
+    with open("appointments.txt", "w") as file:
+        for date, appointment in appointments.items():
+            file.write(f"{date}:{appointment}\n")
+
+# Erstellt das Kalender-Layout
+def create_calendar(frame, appointments):
+    today = datetime.date.today()
+    days_in_month = (datetime.date(today.year, today.month % 12 + 1, 1) - datetime.date(today.year, today.month, 1)).days
+    weekdays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+
+    # Wochentage-Header
+    for i, day in enumerate(weekdays):
+        tk.Label(frame, text=day, font=('Arial', 12, 'bold')).grid(row=0, column=i, padx=5, pady=5)
+
+    # Tage des Monats
+    for day in range(1, days_in_month + 1):
+        date = f"{day:02d}-{today.month:02d}-{today.year}"
+        button = tk.Button(frame, text=date, width=10, height=2, command=lambda d=date: open_appointment_popup(d, appointments, frame))
+        button.grid(row=(day-1)//7+1, column=(day-1)%7, padx=5, pady=5)
+        if date in appointments:
+            button.config(bg="lightblue")
+
+# Hauptfunktion für das Tkinter-Fenster
+def main():
+    appointments = load_appointments()
+
+    root = tk.Tk()
+    root.title("Kalender mit Terminen")
+
+    calendar_frame = tk.Frame(root)
+    calendar_frame.pack(pady=20)
+
+    create_calendar(calendar_frame, appointments)
+
+def Einstellungen_zugang():
+    if eingabefeld.get== "1234":
+        messagebox.showinfo="Info","Richtig"
+        Einstellungen
+    else:
+        messagebox.showwarning=("Warnung","Falsches Passwort")
+        Verwaltung
+def Einstellungen():
+    pass
+    
+def Verwaltung():
+    loesche_aktuelles_frame()
+    
+    # Menüleiste erstellen
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+    
+    # Menü erstellen
+    aufgaben_menu = tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Menü", menu=aufgaben_menu)
+
+
+    #Menüpunkte erstellen
+    aufgaben_menu.add_command(label="Admin", command=Admin)
+    aufgaben_menu.add_command(label="Aufgabe löschen", command=aufgabe_löschen)
+    aufgaben_menu.add_command(label="Ausloggen", command=Stratseite)
+    aufgaben_menu.add_command(label="Startseite", command=Hauptprogramm)
+    
+
+
+    überschrifft_Verwaltung = tk.Label(root, text="Verwaltung", font=("Arial", 13,"bold"))
+    überschrifft_Verwaltung.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
+ 
+
+def Admin():
+    Verbindungen=tk.Label(text="Wie willst du dein dokument abspeichern?")
+    Verbindungen.grid
+    
+    Googledrive=tk.Button(text="Goole drive (Anleitung)")
+    Googledrive.grid()
+
+    System=tk.Button(text="Über den PC (Programm) Anleitung")
+    System.grid()
+
+
+
+    pass
+
+def aufgabe_löschen():
+    pass
+
+
+def Daten_abspeichern():
+    pass
+
+# Hauptfenster erstellen
+root = tk.Tk()
+root.title("Benutzerverwaltung")
+
+# Geladene Texte
+texte = lade_texte()
+
+# Startseite beim Start aufrufen
+Stratseite()
+
+# Hauptfenster starten
+root.mainloop()
